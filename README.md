@@ -34,7 +34,5 @@ Features two modes for the albedo:
 An script Scorch exemplifies how to animate the time variation.
 Uses Standard as a base. Has its own GUI Script. 
 
-![Texture Overlap Screenshot](http://i.imgur.com/vqwF2wr.mp4)
-
 ## License
 Everything in this project would be under the [LGPL-3.0 license](https://tldrlegal.com/license/gnu-lesser-general-public-license-v3-(lgpl-3)#summary). 
