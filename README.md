@@ -25,7 +25,7 @@ Uses Standard as a base. Has its own GUI Script.
 ![CrazyParrot](http://cultofthepartyparrot.com/parrots/hd/parrot.gif)
 
 ### Texture Overlap
-A shader that will take an extra albedo texture, an extra normal map and a mask, overlapping them over the object over time taking. The mask
+A shader that will take an extra albedo texture, an extra normal map and a mask, overlapping them over the object over time. The mask
 tells the shader where to overlap, using the red channel as reference.
 The variation over time is optional and can be animated if needed. 
 Features two modes for the albedo: 
