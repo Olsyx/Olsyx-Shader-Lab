@@ -101,7 +101,7 @@ Shader "Olsyx/Crazy Parrot" {
 				FragmentOutput CrazyParrotFragmentShader(Interpolators intp) : SV_TARGET{
 					float3 customColor = GetCustomColor(intp);
 					float3 customNormals = GetTangentSpaceNormal(intp);
-					return OlsyxFragmentWithCustomAttributes(intp, customColor, customNormals);
+					return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals);
 				}
 
 
@@ -152,7 +152,7 @@ Shader "Olsyx/Crazy Parrot" {
 			FragmentOutput CrazyParrotFragmentShader(Interpolators intp) : SV_TARGET{
 				float3 customColor = GetCustomColor(intp);
 				float3 customNormals = GetTangentSpaceNormal(intp);
-				return OlsyxFragmentWithCustomAttributes(intp, customColor, customNormals);
+				return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals);
 			}
 			ENDCG
 		}
@@ -233,7 +233,7 @@ Shader "Olsyx/Crazy Parrot" {
 			FragmentOutput CrazyParrotFragmentShader(Interpolators intp) : SV_TARGET{
 				float3 customColor = GetCustomColor(intp);
 				float3 customNormals = GetTangentSpaceNormal(intp);
-				return OlsyxFragmentWithCustomAttributes(intp, customColor, customNormals);
+				return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals);
 			}
 
 			ENDCG

@@ -29,12 +29,17 @@
 		[HideInInspector] _ZWrite("_ZWrite", Float) = 1
 
 		// This shader's properties
-		_OverlapTint("Overlap Tint", Color) = (1, 1, 1, 1)
-		[NoScaleOffset] _OverlapTex("Overlap Texture", 2D) = "white" {}
-		_OverlapBumpScale("Overlap Bump Scale", Float) = 1
-		[NoScaleOffset] _OverlapNormals("Overlap Normals", 2D) = "bump" {}
-		[NoScaleOffset] _OverlapMask("Overlap Mask", 2D) = "white" {}
-		_OverlapValue("Overlap Value", Range(0.0, 1.0)) = 0
+		[NoScaleOffset] _FinalTex("Final Albedo (RGB)", 2D) = "white" {}
+		_FinalTint("Final Tint", Color) = (1, 1, 1, 1)
+		[NoScaleOffset] _FinalNormals("Final Normals", 2D) = "bump" {}
+		_FinalBumpScale("Final Bump Scale", Float) = 1
+
+		[NoScaleOffset] _TransitionMask("Transition Mask (RGB)", 2D) = "white" {}
+		[NoScaleOffset] _ColorRamp("Color Ramp (RGB)", 2D) = "white" {}
+
+		_TransitionColorAmount("Transition Color Amount", Range(0.0, 1.0)) = 0.15
+		_TransitionValue("Transition Value", Range(0.0, 1.001)) = 0.5
+		_TransitionThreshold("Transition Threshold", Range(0.0, 1.0)) = 0.15
 	}
 
 		CGINCLUDE
@@ -80,68 +85,11 @@
 			#pragma shader_feature _OVERLAP_FULL_NORMALS
 
 			#pragma vertex OlsyxVertexShader
-			#pragma fragment TextureOverlapFragmentShader
+			#pragma fragment Olsyx_OverlappingTransition_FragmentShader
 
 			#define FORWARD_BASE_PASS
 
-			#include "OlsyxLighting.cginc"
-
-
-			// Data  ------------------------------------------------------------------------------------------------------------------
-			float4 _OverlapTint;
-			sampler2D _OverlapTex, _OverlapNormals, _OverlapMask;
-			float _OverlapBumpScale, _OverlapValue;
-
-
-			// This shader's functions  -----------------------------------------------------------------------------------------------
-
-			float3 GetCustomNormals(Interpolators intp) {
-				float timeVariation = _OverlapValue;
-				
-				#if defined(_USE_STANDARD_VARIATION)
-					timeVariation = abs(sin(_Time * 5));
-				#endif
-
-				float3 mainNormal = GetTangentSpaceNormal(intp);
-
-				float4 overlapMask = tex2D(_OverlapMask, intp.uv);
-				float overlapVariation = _OverlapBumpScale * timeVariation * overlapMask.r;
-				float3 overlapNormal = UnpackScaleNormal(tex2D(_OverlapNormals, intp.uv.zw), overlapVariation);
-				
-				float3 customNormal = BlendNormals(mainNormal, overlapNormal);
-
-				return customNormal;
-			}
-
-			float3 GetCustomColor(Interpolators intp) {
-				float timeVariation = _OverlapValue;
-				
-				#if defined(_USE_STANDARD_VARIATION)
-					timeVariation = abs(sin(_Time * 5));
-				#endif
-				
-				float4 mainTex = tex2D(_MainTex, intp.uv);
-
-				float4 overlapTex = tex2D(_OverlapTex, intp.uv) * _OverlapTint;
-				float4 overlapMask = tex2D(_OverlapMask, intp.uv);
-
-				float3 albedo = GetAlbedo(intp);
-
-				#if defined(_OVERLAP_FULL_TEXTURE)
-					albedo = lerp(albedo, albedo * (1 - overlapMask.r) + overlapTex * overlapMask.r, timeVariation);
-				#elif defined(_OVERLAP_MULTIPLY_TEXTURE)
-					albedo = lerp(albedo, albedo + overlapTex * overlapMask.r, timeVariation);
-				#endif
-
-				return albedo; 
-			}
-
-			FragmentOutput TextureOverlapFragmentShader(Interpolators intp) : SV_TARGET {
-				float3 customColor = GetCustomColor(intp);
-				float3 customNormals = GetCustomNormals(intp);
-				return OlsyxFragmentWithCustomAttributes(intp, customColor, customNormals);
-			} 
-
+			#include "OlsyxTransition.cginc"
 
 			ENDCG
 		}
@@ -170,65 +118,10 @@
 			#pragma shader_feature _OVERLAP_FULL_NORMALS
 			
 			#pragma vertex OlsyxVertexShader
-			#pragma fragment TextureOverlapFragmentShader
+			#pragma fragment Olsyx_OverlappingTransition_FragmentShader
 
-			#include "OlsyxLighting.cginc"
+			#include "OlsyxTransition.cginc"
 			
-			// Data  ------------------------------------------------------------------------------------------------------------------
-			float4 _OverlapTint;
-			sampler2D _OverlapTex, _OverlapNormals, _OverlapMask;
-			float _OverlapBumpScale, _OverlapValue;
-
-
-			// This shader's functions  -----------------------------------------------------------------------------------------------
-
-			float3 GetCustomNormals(Interpolators intp) {
-				float timeVariation = _OverlapValue;
-				
-				#if defined(_USE_STANDARD_VARIATION)
-					timeVariation = abs(sin(_Time * 5));
-				#endif
-
-				float3 mainNormal = GetTangentSpaceNormal(intp);
-
-				float4 overlapMask = tex2D(_OverlapMask, intp.uv);
-				float overlapVariation = _OverlapBumpScale * timeVariation * overlapMask.r;
-				float3 overlapNormal = UnpackScaleNormal(tex2D(_OverlapNormals, intp.uv.zw), overlapVariation);
-				
-				float3 customNormal = BlendNormals(mainNormal, overlapNormal);
-
-				return customNormal;
-			}
-
-			float3 GetCustomColor(Interpolators intp) {
-				float timeVariation = _OverlapValue;
-				
-				#if defined(_USE_STANDARD_VARIATION)
-					timeVariation = abs(sin(_Time * 5));
-				#endif
-				
-				float4 mainTex = tex2D(_MainTex, intp.uv);
-
-				float4 overlapTex = tex2D(_OverlapTex, intp.uv) * _OverlapTint;
-				float4 overlapMask = tex2D(_OverlapMask, intp.uv);
-
-				float3 albedo = GetAlbedo(intp);
-
-				#if defined(_OVERLAP_FULL_TEXTURE)
-					albedo = lerp(albedo, albedo * (1 - overlapMask.r) + overlapTex * overlapMask.r, timeVariation);
-				#elif defined(_OVERLAP_MULTIPLY_TEXTURE)
-					albedo = lerp(albedo, albedo + overlapTex * overlapMask.r, timeVariation);
-				#endif
-
-				albedo = lerp(albedo, albedo * (1-overlapMask.r) + overlapTex * overlapMask.r, timeVariation);
-				return albedo; 
-			}
-
-			FragmentOutput TextureOverlapFragmentShader(Interpolators intp) : SV_TARGET {
-				float3 customColor = GetCustomColor(intp);
-				float3 customNormals = GetCustomNormals(intp);
-				return OlsyxFragmentWithCustomAttributes(intp, customColor, customNormals);
-			} 
 
 			ENDCG
 		}
@@ -286,68 +179,12 @@
 			#pragma shader_feature _OVERLAP_FULL_NORMALS
 
 			#pragma vertex OlsyxVertexShader
-			#pragma fragment TextureOverlapFragmentShader
+			#pragma fragment Olsyx_OverlappingTransition_FragmentShader
 
 			#define DEFERRED_PASS
 
-			#include "OlsyxLighting.cginc"
+			#include "OlsyxTransition.cginc"
 
-			
-			// Data  ------------------------------------------------------------------------------------------------------------------
-			float4 _OverlapTint;
-			sampler2D _OverlapTex, _OverlapNormals, _OverlapMask;
-			float _OverlapBumpScale, _OverlapValue;
-
-
-			// This shader's functions  -----------------------------------------------------------------------------------------------
-
-			float3 GetCustomNormals(Interpolators intp) {
-				float timeVariation = _OverlapValue;
-				
-				#if defined(_USE_STANDARD_VARIATION)
-					timeVariation = abs(sin(_Time * 5));
-				#endif
-
-				float3 mainNormal = GetTangentSpaceNormal(intp);
-
-				float4 overlapMask = tex2D(_OverlapMask, intp.uv);
-				float overlapVariation = _OverlapBumpScale * timeVariation * overlapMask.r;
-				float3 overlapNormal = UnpackScaleNormal(tex2D(_OverlapNormals, intp.uv.zw), overlapVariation);
-
-				float3 customNormal = BlendNormals(mainNormal, overlapNormal);
-
-				return customNormal;
-			}
-
-			float3 GetCustomColor(Interpolators intp) {
-				float timeVariation = _OverlapValue;
-				
-				#if defined(_USE_STANDARD_VARIATION)
-					timeVariation = abs(sin(_Time * 5));
-				#endif
-				
-				float4 mainTex = tex2D(_MainTex, intp.uv);
-
-				float4 overlapTex = tex2D(_OverlapTex, intp.uv) * _OverlapTint;
-				float4 overlapMask = tex2D(_OverlapMask, intp.uv);
-
-				float3 albedo = GetAlbedo(intp);
-
-				#if defined(_OVERLAP_FULL_TEXTURE)
-					albedo = lerp(albedo, albedo * (1 - overlapMask.r) + overlapTex * overlapMask.r, timeVariation);
-				#elif defined(_OVERLAP_MULTIPLY_TEXTURE)
-					albedo = lerp(albedo, albedo + overlapTex * overlapMask.r, timeVariation);
-				#endif
-
-				albedo = lerp(albedo, albedo * (1-overlapMask.r) + overlapTex * overlapMask.r, timeVariation);
-				return albedo; 
-			}
-
-			FragmentOutput TextureOverlapFragmentShader(Interpolators intp) : SV_TARGET {
-				float3 customColor = GetCustomColor(intp);
-				float3 customNormals = GetCustomNormals(intp);
-				return OlsyxFragmentWithCustomAttributes(intp, customColor, customNormals);
-			} 
 
 			ENDCG
 		}

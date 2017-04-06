@@ -406,7 +406,7 @@ void CalculateFragmentNormals_AddCustomNormals(inout Interpolators intp, float3 
 }
 
 
-FragmentOutput OlsyxFragmentWithCustomAttributes(Interpolators intp, float3 customColor, float3 customNormals) {
+FragmentOutput OlsyxFragmentWithCustomAttributes(Interpolators intp, float3 customColor, float3 customEmission, float3 customNormals) {
 	
 	float alpha = GetAlpha(intp);
 	#if defined (_RENDERING_CUTOUT)
@@ -436,7 +436,7 @@ FragmentOutput OlsyxFragmentWithCustomAttributes(Interpolators intp, float3 cust
 		CreateLight(intp), CreateIndirectLight(intp, viewDirection)
 	);
 
-	color.rgb += GetEmission(intp);
+	color.rgb += customEmission;
 	#if defined(_RENDERING_FADE) || defined(_RENDERING_TRANSPARENT)
 		color.a = alpha;
 	#endif
