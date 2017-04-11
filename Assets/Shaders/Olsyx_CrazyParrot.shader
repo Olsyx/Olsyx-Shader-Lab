@@ -93,15 +93,14 @@ Shader "Olsyx/Crazy Parrot" {
 						variation = abs(sin(_Time * 5));
 					#endif
 
-					float3 albedo = GetAlbedo(intp);
-					albedo = lerp(albedo, _FinalColor, variation);
+					float3 albedo = lerp(_Tint, _FinalColor, variation);
 					return albedo;
 				}
 
 				FragmentOutput CrazyParrotFragmentShader(Interpolators intp) : SV_TARGET{
 					float3 customColor = GetCustomColor(intp);
 					float3 customNormals = GetTangentSpaceNormal(intp);
-					return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals);
+					return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals, GetSmoothness(intp), GetMetallic(intp), GetOcclusion(intp));
 				}
 
 
@@ -144,15 +143,16 @@ Shader "Olsyx/Crazy Parrot" {
 				#if defined(_USE_STANDARD_VARIATION)
 					variation = abs(sin(_Time * 5));
 				#endif
-				float3 albedo = GetAlbedo(intp);
-				albedo = lerp(albedo, _FinalColor, variation);
+
+
+				float3 albedo = lerp(_Tint, _FinalColor, variation);
 				return albedo;
 			}
 
 			FragmentOutput CrazyParrotFragmentShader(Interpolators intp) : SV_TARGET{
 				float3 customColor = GetCustomColor(intp);
 				float3 customNormals = GetTangentSpaceNormal(intp);
-				return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals);
+				return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals, GetSmoothness(intp), GetMetallic(intp), GetOcclusion(intp));
 			}
 			ENDCG
 		}
@@ -225,15 +225,15 @@ Shader "Olsyx/Crazy Parrot" {
 				#if defined(_USE_STANDARD_VARIATION)
 					variation = abs(sin(_Time * 5));
 				#endif
-				float3 albedo = GetAlbedo(intp);
-				albedo = lerp(albedo, _FinalColor, variation);
+
+				float3 albedo = lerp(_Tint, _FinalColor, variation);
 				return albedo;
 			}
 
 			FragmentOutput CrazyParrotFragmentShader(Interpolators intp) : SV_TARGET{
 				float3 customColor = GetCustomColor(intp);
 				float3 customNormals = GetTangentSpaceNormal(intp);
-				return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals);
+				return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals, GetSmoothness(intp), GetMetallic(intp), GetOcclusion(intp));
 			}
 
 			ENDCG

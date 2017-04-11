@@ -33,6 +33,11 @@ public class OlsyxCrazyParrotGUI : OlsyxShaderGUI {
         if (EditorGUI.EndChangeCheck()) {
             SetKeyword("_USE_STANDARD_VARIATION", useShadersVariation);
         }
+
+        if (!useShadersVariation) {
+            MaterialProperty variationSlider = FindProperty("_GradientVariation", properties);
+            editor.RangeProperty(variationSlider, "Variation Value");
+        }
     }
 
 

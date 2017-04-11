@@ -165,7 +165,7 @@ public class OlsyxShaderGUI : ShaderGUI {
         MaterialProperty slider = tex ? FindProperty("_OcclusionStrength", properties) : null;
 
         EditorGUI.BeginChangeCheck();
-        editor.TexturePropertySingleLine(MakeLabel(map, "Òcclusion (G)"), map, slider);
+        editor.TexturePropertySingleLine(MakeLabel(map, "Occlusion (G)"), map, slider);
         if (EditorGUI.EndChangeCheck() && tex != map.textureValue)
             SetKeyword("_OCCLUSION_MAP", map.textureValue);
     }

@@ -6,25 +6,36 @@
 
 // Data  ------------------------------------------------------------------------------------------------------------------
 
-float4 _FinalTint;
-sampler2D _FinalTex, _ColorRamp, _FinalNormals, _TransitionMask;
-float4 _FinalTex_ST;
-float _TransitionSpeed, _FinalBumpScale, _TransitionColorAmount, _TransitionValue, _TransitionThreshold;
+float _TransitionValue, _TransitionSpeed;
+sampler2D _ColorRamp;
+float _TransitionColorAmount;
 
+float4 _FinalTint;
+sampler2D _FinalTex, _FinalNormals, _TransitionMask;
+float4 _FinalTex_ST;
+float _FinalBumpScale;
+
+sampler2D _FinalMetallicMap;
+float _FinalMetallic;
+float _FinalSmoothness;
+
+sampler2D _FinalOcclusionMap;
+float3 _FinalOcclusionStrength;
 
 // Overlapping functions  -------------------------------------------------------------------------------------------------
 
 float3 OverlapAlbedos(float3 mainAlbedo, float3 customAlbedo, float4 mask, float variation) {
-	float3 albedo = mainAlbedo;
+	// Function that will overlap two visualization textures: Albedos, Metallics, Smoothnesses, Occlusion Maps...
+	float3 visualizationMap = mainAlbedo;
 
 	#if defined(_OVERLAP_FULL_TEXTURE)
-		albedo = lerp(albedo, albedo * (1 - mask.rgb) + customAlbedo * mask.rgb, variation);
+		visualizationMap = lerp(mainAlbedo, mainAlbedo * (1 - mask.rgb) + customAlbedo * mask.rgb, variation);
 	#elif defined(_OVERLAP_MULTIPLY_TEXTURE)
-		albedo = lerp(albedo, albedo + customAlbedo * mask.rgb, variation);
+		visualizationMap = lerp(mainAlbedo, mainAlbedo + customAlbedo * mask.rgb, variation);
 		//albedo = albedo + overlapTex * overlapMask.r * timeVariation;
 	#endif
 
-	return albedo;
+	return visualizationMap;
 }
 
 float3 OverlapNormals(float3 mainNormal, float4 customNormals, float4 mask, float bumpiness, float variation) {		
@@ -51,51 +62,46 @@ FragmentOutput Olsyx_OverlappingTransition_FragmentShader(Interpolators intp) : 
 		GetTangentSpaceNormal(intp), normals, mask, _FinalBumpScale, variation
 	);
 
-	return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals);
+	return OlsyxFragmentWithCustomAttributes(intp, customColor, GetEmission(intp), customNormals, GetSmoothness(intp), GetMetallic(intp), GetOcclusion(intp));
 }
 
 
 
 // Dissolving functions   -------------------------------------------------------------------------------------------------
 
-float3 GetDissolvingEmission(Interpolators intp, float3 mainEmission, half edgeThreshold, float dissolvedThreshold, float colorThreshold, float dissolveAmount) {
+float3 GetDissolvingEmission(Interpolators intp, float3 mainEmission, float value, float edge, float clipping) {
 	float3 emission = mainEmission;
 
-	#if defined(_ADD_COLOR_TO_DISSOLVE)
-		if (edgeThreshold >= dissolvedThreshold && edgeThreshold < colorThreshold && dissolveAmount > 0 && dissolveAmount < 1) {
-			emission = tex2D(_ColorRamp, float2(edgeThreshold * (1 / colorThreshold), 0));
-		}
-	#endif 
+	if (value >= clipping && value <= edge && clipping > 0 && clipping < 1) {
+		emission = tex2D(_ColorRamp, float2(value * (1 / edge - clipping), 0));
+	}
 
 	return emission;
 }
 
-float3 DissolveColor(Interpolators intp, float3 mainAlbedo, float3 dissolvedAlbedo, float3 emission, half edgeThreshold, float dissolvedThreshold, float colorThreshold, float dissolveAmount) {
+float3 DissolveColor(Interpolators intp, float3 mainAlbedo, float3 finalAlbedo, float4 mask, float3 emission, float value, float edge, float clipping) {
 	float3 albedo = mainAlbedo;
+	
+	#if !defined(_ADD_COLOR_TO_DISSOLVE) && !defined(_DO_DISSOLVE_CLIPPING)
+		return OverlapAlbedos(mainAlbedo, finalAlbedo, mask, value);
+	#endif
 
 	#if defined(_ADD_COLOR_TO_DISSOLVE)
-		#if defined(_DO_DISSOLVE_CLIPPING)
-			if (edgeThreshold < colorThreshold && dissolveAmount > 0 && dissolveAmount < 1) {
-				albedo *= emission;
-			}
-		#else
-			if (edgeThreshold > dissolvedThreshold && edgeThreshold < colorThreshold && dissolveAmount > 0 && dissolveAmount < 1) {
-				albedo *= emission;
-			} else if (edgeThreshold < dissolvedThreshold && dissolveAmount > 0) {
-				albedo = dissolvedAlbedo;
-			}
-		#endif 
-	#else
-		if (edgeThreshold < dissolvedThreshold && dissolveAmount > 0) {
-			albedo = dissolvedAlbedo;
+		if (value > edge && clipping > 0 && clipping < 1) {
+			albedo *= emission;
 		}
 	#endif 
+
+	#if !defined(_DO_DISSOLVE_CLIPPING)
+		if (value > clipping) {
+			albedo = finalAlbedo;
+		}
+	#endif
 
 	return albedo;
 }
 
 FragmentOutput Olsyx_Dissolve_FragmentShader(Interpolators intp) : SV_TARGET {
-
 	float4 mask = tex2D(_TransitionMask, intp.uv);
 
 	float dissolveAmount = _TransitionValue;
@@ -103,39 +109,47 @@ FragmentOutput Olsyx_Dissolve_FragmentShader(Interpolators intp) : SV_TARGET {
 		dissolveAmount = abs(sin(_Time * _TransitionSpeed));
 	#endif
 
-	half edgeThreshold = mask.rgb - dissolveAmount;
+	half clipping = mask.rgb - dissolveAmount;
 	#if defined(_DO_DISSOLVE_CLIPPING)
-		clip(edgeThreshold);
+		clip(clipping);
 	#endif
 
 	// -- Variation Data
-	float dissolvedThreshold = _TransitionThreshold;
-	float colorThreshold = _TransitionColorAmount;
+	float colorThreshold = clipping + _TransitionColorAmount;
 
 	// -- Emission
-	float3 customEmission = GetDissolvingEmission(
-		intp, GetEmission(intp),
-		edgeThreshold, dissolvedThreshold, colorThreshold, dissolveAmount
-	);
+	float3 customEmission = GetEmission(intp);
+	#if defined(_ADD_COLOR_TO_DISSOLVE)
+		customEmission = GetDissolvingEmission ( intp, customEmission, dissolveAmount, colorThreshold, clipping );
+	#endif 
 
 	// -- Color
 	float3 mainAlbedo = GetAlbedo(intp);
-	float3 customAlbedo = tex2D(_FinalTex, intp.uv) * _FinalTint;
-	float3 finalAlbedo = customAlbedo;// OverlapAlbedos(mainAlbedo, customAlbedo, (0.5, 0.5, 0.5, 0.5), dissolveAmount);
+	float3 finalAlbedo = tex2D(_FinalTex, intp.uv) * _FinalTint;
 
-	float3 customColor = DissolveColor (
-		intp, 
-		mainAlbedo, finalAlbedo, customEmission,
-		edgeThreshold, dissolvedThreshold, colorThreshold, dissolveAmount
-	);
+	float3 customColor = DissolveColor ( intp, mainAlbedo, finalAlbedo, mask, customEmission,
+										dissolveAmount, colorThreshold, clipping );
 
 	// -- Normal
 	float4 normals = tex2D(_FinalNormals, intp.uv.zw);
 	float3 customNormals = OverlapNormals( GetTangentSpaceNormal(intp), normals, (1,1,1,1), _FinalBumpScale, dissolveAmount );
 
+	// -- Smoothness
+	float customSmoothness = GetCustomSmoothness(intp, _FinalSmoothness, _FinalTex, _FinalMetallicMap);
+	customSmoothness = GetSmoothness(intp) * (1 - dissolveAmount) + customSmoothness * dissolveAmount;
+
+
+	// -- Metallic
+	float customMetallic = GetCustomMetallic(intp, _FinalMetallic, _FinalMetallicMap);
+	customMetallic = GetMetallic(intp) * (1 - dissolveAmount) + customMetallic * dissolveAmount;
+
+
+	// -- Occlusion
+	//float4 customOcclusion = GetCustomOcclusion(intp, _FinalOcclusionStrength, _FinalOcclusionMap);
+
 
 	// -- Final Call
-	return OlsyxFragmentWithCustomAttributes(intp, customColor, customEmission, customNormals);
+	return OlsyxFragmentWithCustomAttributes(intp, customColor, customEmission, customNormals, customSmoothness, customMetallic, GetOcclusion(intp));
 }
 
 

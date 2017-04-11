@@ -22,6 +22,7 @@ public class OlsyxTransitionGUI : OlsyxShaderGUI {
 
         Variation();
         Dissolve();
+
         FinalAlbedo();
         FinalNormals();
         Masks();
@@ -66,8 +67,56 @@ public class OlsyxTransitionGUI : OlsyxShaderGUI {
             MaterialProperty map = FindProperty("_FinalTex", properties);
 
             editor.TexturePropertySingleLine(MakeLabel(map, "Albedo (RGB)"), map, tint);
-            MaterialProperty slider = FindProperty("_TransitionThreshold", properties);
+            
+            FinalMetallic();
+            FinalSmoothness();
+            FinalOcclusion();
         }
+    }
+
+    void FinalMetallic() {
+        MaterialProperty map = FindProperty("_FinalMetallicMap", properties);
+        Texture tex = map.textureValue;
+        MaterialProperty slider = tex ? null : FindProperty("_FinalMetallic", properties);
+
+        EditorGUI.BeginChangeCheck();
+        editor.TexturePropertySingleLine(MakeLabel(map, "Metallic (R)"), map, slider);
+        if (EditorGUI.EndChangeCheck() && tex != map.textureValue)
+            SetKeyword("_METALLIC_MAP", map.textureValue);
+    }
+
+    void FinalSmoothness() {
+        SmoothnessSource source = SmoothnessSource.Uniform;
+        if (IsKeywordEnabled("_SMOOTHNESS_ALBEDO")) {
+            source = SmoothnessSource.Albedo;
+        } else if (IsKeywordEnabled("_SMOOTHNESS_METALLIC")) {
+            source = SmoothnessSource.Metallic;
+        }
+
+        MaterialProperty slider = FindProperty("_FinalSmoothness", properties);
+        EditorGUI.indentLevel += 2;
+        editor.ShaderProperty(slider, MakeLabel(slider));
+        EditorGUI.indentLevel += 1;
+        EditorGUI.BeginChangeCheck();
+        source = (SmoothnessSource)EditorGUILayout.EnumPopup(MakeLabel("Source"), source);
+
+        if (EditorGUI.EndChangeCheck()) {
+            RecordAction("Final Smoothness Source");
+            SetKeyword("_SMOOTHNESS_ALBEDO", source == SmoothnessSource.Albedo);
+            SetKeyword("_SMOOTHNESS_METALLIC", source == SmoothnessSource.Metallic);
+        }
+        EditorGUI.indentLevel -= 3;
+    }
+
+    void FinalOcclusion() {
+        MaterialProperty map = FindProperty("_FinalOcclusionMap", properties);
+        Texture tex = map.textureValue;
+        MaterialProperty slider = tex ? FindProperty("_FinalOcclusionStrength", properties) : null;
+
+        EditorGUI.BeginChangeCheck();
+        editor.TexturePropertySingleLine(MakeLabel(map, "Occlusion (G)"), map, slider);
+        if (EditorGUI.EndChangeCheck() && tex != map.textureValue)
+            SetKeyword("_OCCLUSION_MAP", map.textureValue);
     }
 
     void FinalNormals() {
@@ -79,8 +128,7 @@ public class OlsyxTransitionGUI : OlsyxShaderGUI {
 
     void Masks() {
         MaterialProperty mask = FindProperty("_TransitionMask", properties);
-        MaterialProperty variationSlider = FindProperty("_TransitionThreshold", properties);
-        editor.TexturePropertySingleLine(MakeLabel(mask, "Mask (RGB)"), mask, variationSlider);
+        editor.TexturePropertySingleLine(MakeLabel(mask, "Mask (RGB)"), mask);
 
         UseColorRamp();
 
@@ -116,7 +164,7 @@ public class OlsyxTransitionGUI : OlsyxShaderGUI {
         EditorGUI.BeginChangeCheck();
         mode = (OverlapMode)EditorGUILayout.EnumPopup(MakeLabel("Overlapping Mode"), mode);
         if (EditorGUI.EndChangeCheck()) {
-            RecordAction("Texture Overlap Mode");
+            RecordAction("Final Texture Overlap Mode");
             SetKeyword("_OVERLAP_FULL_TEXTURE", mode == OverlapMode.Full);
             SetKeyword("_OVERLAP_MULTIPLY_TEXTURE", mode == OverlapMode.Multiply);
         }

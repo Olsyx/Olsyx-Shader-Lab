@@ -22,7 +22,7 @@
 		_Emission ("Emission", Color) = (0, 0, 0)
 
 		[NoScaleOffset] _OcclusionMap("Occlusion", 2D) = "white" {}
-		_OcclusionStrength("OcclusionStrength", Range(0,1)) = 1
+		_OcclusionStrength("Occlusion Strength", Range(0,1)) = 1
 
 		[HideInInspector] _SrcBlend ("_SrcBlend", Float) = 1
 		[HideInInspector] _DstBlend ("_DstBlend", Float) = 0
@@ -32,6 +32,14 @@
 		_TransitionSpeed("Transition Speed", Float) = 1
 		[NoScaleOffset] _FinalTex("Final Albedo (RGB)", 2D) = "white" {}
 		_FinalTint("Final Tint", Color) = (1, 1, 1, 1)
+
+		[NoScaleOffset] _FinalMetallicMap("Final Metallic", 2D) = "white" {}
+		[Gamma] _FinalMetallic("Final Metallic", Range(0, 1)) = 0
+		_FinalSmoothness("Final Smoothness", Range(0, 1)) = 0.1
+
+		[NoScaleOffset] _FinalOcclusionMap("Final Occlusion", 2D) = "white" {}
+		_FinalOcclusionStrength("Final Occlusion Strength", Range(0,1)) = 1
+
 		[NoScaleOffset] _FinalNormals("Final Normals", 2D) = "bump" {}
 		_FinalBumpScale("Final Bump Scale", Float) = 1
 
@@ -40,7 +48,6 @@
 
 		_TransitionColorAmount("Transition Color Amount", Range(0.0, 1.0)) = 0.15
 		_TransitionValue("Transition Value", Range(0.0, 1.001)) = 0.5
-		_TransitionThreshold("Transition Threshold", Range(0, 0.13)) = 0.03
 	}
 
 	CGINCLUDE
@@ -84,7 +91,10 @@
 			#pragma shader_feature _DO_DISSOLVE_CLIPPING
 			#pragma shader_feature _ADD_COLOR_TO_DISSOLVE
 			#pragma shader_feature _USE_STANDARD_VARIATION
+			#pragma shader_feature _OVERLAP_FULL_TEXTURE
+			#pragma shader_feature _OVERLAP_MULTIPLY_TEXTURE
 
+			// Programs
 			#pragma vertex OlsyxVertexShader
 			#pragma fragment Olsyx_Dissolve_FragmentShader
 
@@ -118,7 +128,10 @@
 			#pragma shader_feature _DO_DISSOLVE_CLIPPING
 			#pragma shader_feature _ADD_COLOR_TO_DISSOLVE
 			#pragma shader_feature _USE_STANDARD_VARIATION
-						
+			#pragma shader_feature _OVERLAP_FULL_TEXTURE
+			#pragma shader_feature _OVERLAP_MULTIPLY_TEXTURE
+
+			// Programs		
 			#pragma vertex OlsyxVertexShader
 			#pragma fragment Olsyx_Dissolve_FragmentShader
 			
@@ -143,7 +156,15 @@
 			#pragma shader_feature _ _RENDERING_CUTOUT _RENDERING_FADE _RENDERING_TRANSPARENT
 			#pragma shader_feature _ _SMOOTHNESS_ALBEDO
 			#pragma shader_feature _SEMITRANSPARENT_SHADOWS
+		
+			// Olsyx Transition
+			#pragma shader_feature _DO_DISSOLVE_CLIPPING
+			#pragma shader_feature _ADD_COLOR_TO_DISSOLVE
+			#pragma shader_feature _USE_STANDARD_VARIATION
+			#pragma shader_feature _OVERLAP_FULL_TEXTURE
+			#pragma shader_feature _OVERLAP_MULTIPLY_TEXTURE
 
+			// Programs
 			#pragma vertex OlsyxShadowVertexShader
 			#pragma fragment OlsyxShadowFragmentShader
 
@@ -177,7 +198,10 @@
 			#pragma shader_feature _DO_DISSOLVE_CLIPPING
 			#pragma shader_feature _ADD_COLOR_TO_DISSOLVE
 			#pragma shader_feature _USE_STANDARD_VARIATION
+			#pragma shader_feature _OVERLAP_FULL_TEXTURE
+			#pragma shader_feature _OVERLAP_MULTIPLY_TEXTURE
 
+			// Programs
 			#pragma vertex OlsyxVertexShader
 			#pragma fragment Olsyx_Dissolve_FragmentShader
 			

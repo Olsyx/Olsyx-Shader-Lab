@@ -390,6 +390,34 @@ FragmentOutput OlsyxFragmentShader(Interpolators intp) : SV_TARGET {
 
 // -- For Custom Extensions
 
+float GetCustomSmoothness(Interpolators intp, float smoothnessValue, sampler2D albedoTex, sampler2D metallicMap) {
+	float texSmoothness = 1;
+
+	#if defined (_SMOOTHNESS_ALBEDO)
+		texSmoothness = tex2D(albedoTex, intp.uv.xy).a;
+	#elif defined (_SMOOTHNESS_METALLIC) && defined (_METALLIC_MAP)
+		texSmoothness = tex2D(metallicMap, intp.uv.xy).a;
+	#endif
+
+	return texSmoothness * smoothnessValue;
+}
+
+float GetCustomMetallic(Interpolators intp, float metallicValue, sampler2D metallicMap) {
+	#if defined(_METALLIC_MAP)
+		return tex2D(metallicMap, intp.uv.xy).r;
+	#else
+		return metallicValue;
+	#endif
+}
+
+float3 GetCustomOcclusion(Interpolators intp, float occlusionStrength, sampler2D occlusionMap) {
+	#if defined (_OCCLUSION_MAP)
+		return lerp(1, tex2D(occlusionMap, intp.uv.xy).g, occlusionStrength);
+	#else
+		return 1;
+	#endif
+}
+
 void CalculateFragmentNormals_AddCustomNormals(inout Interpolators intp, float3 customNormals) {
 	float3 tangentSpaceNormal = customNormals;
 
@@ -406,7 +434,13 @@ void CalculateFragmentNormals_AddCustomNormals(inout Interpolators intp, float3 
 }
 
 
-FragmentOutput OlsyxFragmentWithCustomAttributes(Interpolators intp, float3 customColor, float3 customEmission, float3 customNormals) {
+FragmentOutput OlsyxFragmentWithCustomAttributes( 
+		Interpolators intp, 
+		float3 customColor, float3 customEmission, float3 customNormals, 
+		float customSmoothness, float customMetallic, float3 customOcclusionMap 
+	) 
+
+	{
 	
 	float alpha = GetAlpha(intp);
 	#if defined (_RENDERING_CUTOUT)
@@ -421,7 +455,7 @@ FragmentOutput OlsyxFragmentWithCustomAttributes(Interpolators intp, float3 cust
 	float oneMinusReflectivity;
 	
 	float3 albedo = DiffuseAndSpecularFromMetallic (
-		customColor, GetMetallic(intp), specularTint, oneMinusReflectivity
+		customColor, customMetallic, specularTint, oneMinusReflectivity
 	);
 
 	#if defined(_RENDERING_TRANSPARENT)
@@ -431,7 +465,7 @@ FragmentOutput OlsyxFragmentWithCustomAttributes(Interpolators intp, float3 cust
 
 	float4 color = UNITY_BRDF_PBS(
 		albedo, specularTint,
-		oneMinusReflectivity, GetSmoothness(intp),
+		oneMinusReflectivity, customSmoothness,
 		intp.normal, viewDirection,
 		CreateLight(intp), CreateIndirectLight(intp, viewDirection)
 	);
@@ -448,9 +482,9 @@ FragmentOutput OlsyxFragmentWithCustomAttributes(Interpolators intp, float3 cust
 		#endif
 
 		output.gBuffer0.rgb = albedo;
-		output.gBuffer0.a = GetOcclusion(intp);
+		output.gBuffer0.a = customOcclusionMap;
 		output.gBuffer1.rgb = specularTint;
-		output.gBuffer1.a = GetOcclusion(intp);
+		output.gBuffer1.a = customOcclusionMap;
 		output.gBuffer2 = float4(intp.normal * 0.5 + 0.5, 1);
 		output.gBuffer3 = color;
 	#else

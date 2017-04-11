@@ -132,10 +132,7 @@
     <None Include="Assets\Shaders\OlsyxShadows.cginc" />
     <None Include="Assets\Shaders\OlsyxTransition.cginc" />
     <None Include="Assets\Shaders\Olsyx_CrazyParrot.shader" />
-    <None Include="Assets\Shaders\Olsyx_Dissolve.shader" />
     <None Include="Assets\Shaders\Olsyx_Standard.shader" />
-    <None Include="Assets\Shaders\Olsyx_TextureOverlap.shader" />
-    <None Include="Assets\Shaders\Olsyx_TextureOverlap_5-4-x.shader" />
     <None Include="Assets\Shaders\Olsyx_Transition.shader" />
     <None Include="Assets\Shaders\SingleLights\Olsyx_AmbientLight.shader" />
     <None Include="Assets\Shaders\SingleLights\Olsyx_DiffuseLight.shader" />
