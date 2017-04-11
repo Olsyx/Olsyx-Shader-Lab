@@ -24,14 +24,14 @@ Uses Standard as a base. Has its own GUI Script.
 
 ![CrazyParrot](http://cultofthepartyparrot.com/parrots/hd/parrot.gif)
 
-### Texture Overlap
-A shader that will take an extra albedo texture, an extra normal map and a mask, overlapping them over the object over time. The mask
-tells the shader where to overlap, using the red channel as reference.
-The variation over time is optional and can be animated if needed. 
-Features two modes for the albedo: 
+### Transition
+Allows for extra: albedo texture, metallic, smoothness, occlusion and normal maps. Also takes a mask and, optionally, a color ramp. This shader transitions between all these values, or dissolves the object, both with the option of burning effect with the Color Ramp. Nuts, too many options, brah, I know.
+Features three modes for the albedo: 
+- Dissolve (toggle): Will disintegrate the object. No albedo/metallic/smoothness/occlusion for this.
 - Full: Overlap the texture as a cutout. This means that, by the end of the cycle, only one of the two textures exists at a certain fragment.
 - Multiply: Blends both textures.
-An script Scorch exemplifies how to animate the time variation.
+The color ramp is used in the edges for cool effects, such as burning.
+The mask tells the shader where to overlap. The variation over time is optional and can be animated if needed, but when chosen to use the standard shader variation (which is over time), one can choose the speed of it. The script Scorch exemplifies how to animate the time variation.
 Uses Standard as a base. Has its own GUI Script. 
 
 ## License
