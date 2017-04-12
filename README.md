@@ -56,4 +56,4 @@ It also features its own GUI Script.
 It seems to run very smoothly, although further testing is needed. The bottle neck for this shader is actually the GUI. Setting a feature can freeze the program for as long as two seconds.
 
 ## License
-Everything in this project would be under the [LGPL-3.0 license](https://tldrlegal.com/license/gnu-lesser-general-public-license-v3-(lgpl-3)#summary). 
+Everything in this project would be under the [LGPL-3.0 license](https://tldrlegal.com/license/gnu-lesser-general-public-license-v3-(lgpl-3)#summary). It is free to use and learn from it, and you can also use it in your projects (commercial included) as long as you credit me as the source =) 
