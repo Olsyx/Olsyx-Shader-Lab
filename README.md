@@ -27,6 +27,8 @@ Uses Standard as a base. Has its own GUI Script.
 ### Transition Shader
 ![TransitionShader](/Screenshots/TransitionShaders.PNG)
 
+[Click here to see a GIF](https://twitter.com/_Darkatom_/status/852043636065787904)
+
 #### · Legend
 Left-to-Right / Top-to-Bottom:
 1. Simple Smoothness & Metallic Transition
