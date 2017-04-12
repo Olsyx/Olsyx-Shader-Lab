@@ -93,6 +93,9 @@
 			#pragma shader_feature _USE_STANDARD_VARIATION
 			#pragma shader_feature _OVERLAP_FULL_TEXTURE
 			#pragma shader_feature _OVERLAP_MULTIPLY_TEXTURE
+			#pragma shader_feature _OVERLAP_SMOOTHNESS_ALBEDO
+			#pragma shader_feature _OVERLAP_SMOOTHNESS_METALLIC
+			#pragma shader_feature _OVERLAP_METALLIC_MAP
 
 			// Programs
 			#pragma vertex OlsyxVertexShader
@@ -130,6 +133,9 @@
 			#pragma shader_feature _USE_STANDARD_VARIATION
 			#pragma shader_feature _OVERLAP_FULL_TEXTURE
 			#pragma shader_feature _OVERLAP_MULTIPLY_TEXTURE
+			#pragma shader_feature _OVERLAP_SMOOTHNESS_ALBEDO
+			#pragma shader_feature _OVERLAP_SMOOTHNESS_METALLIC
+			#pragma shader_feature _OVERLAP_METALLIC_MAP
 
 			// Programs		
 			#pragma vertex OlsyxVertexShader
@@ -200,6 +206,9 @@
 			#pragma shader_feature _USE_STANDARD_VARIATION
 			#pragma shader_feature _OVERLAP_FULL_TEXTURE
 			#pragma shader_feature _OVERLAP_MULTIPLY_TEXTURE
+			#pragma shader_feature _OVERLAP_SMOOTHNESS_ALBEDO
+			#pragma shader_feature _OVERLAP_SMOOTHNESS_METALLIC
+			#pragma shader_feature _OVERLAP_METALLIC_MAP
 
 			// Programs
 			#pragma vertex OlsyxVertexShader

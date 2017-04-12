@@ -82,14 +82,14 @@ public class OlsyxTransitionGUI : OlsyxShaderGUI {
         EditorGUI.BeginChangeCheck();
         editor.TexturePropertySingleLine(MakeLabel(map, "Metallic (R)"), map, slider);
         if (EditorGUI.EndChangeCheck() && tex != map.textureValue)
-            SetKeyword("_METALLIC_MAP", map.textureValue);
+            SetKeyword("_OVERLAP_METALLIC_MAP", map.textureValue);
     }
 
     void FinalSmoothness() {
         SmoothnessSource source = SmoothnessSource.Uniform;
-        if (IsKeywordEnabled("_SMOOTHNESS_ALBEDO")) {
+        if (IsKeywordEnabled("_OVERLAP_SMOOTHNESS_ALBEDO")) {
             source = SmoothnessSource.Albedo;
-        } else if (IsKeywordEnabled("_SMOOTHNESS_METALLIC")) {
+        } else if (IsKeywordEnabled("_OVERLAP_SMOOTHNESS_METALLIC")) {
             source = SmoothnessSource.Metallic;
         }
 
@@ -102,8 +102,8 @@ public class OlsyxTransitionGUI : OlsyxShaderGUI {
 
         if (EditorGUI.EndChangeCheck()) {
             RecordAction("Final Smoothness Source");
-            SetKeyword("_SMOOTHNESS_ALBEDO", source == SmoothnessSource.Albedo);
-            SetKeyword("_SMOOTHNESS_METALLIC", source == SmoothnessSource.Metallic);
+            SetKeyword("_OVERLAP_SMOOTHNESS_ALBEDO", source == SmoothnessSource.Albedo);
+            SetKeyword("_OVERLAP_SMOOTHNESS_METALLIC", source == SmoothnessSource.Metallic);
         }
         EditorGUI.indentLevel -= 3;
     }
@@ -116,7 +116,7 @@ public class OlsyxTransitionGUI : OlsyxShaderGUI {
         EditorGUI.BeginChangeCheck();
         editor.TexturePropertySingleLine(MakeLabel(map, "Occlusion (G)"), map, slider);
         if (EditorGUI.EndChangeCheck() && tex != map.textureValue)
-            SetKeyword("_OCCLUSION_MAP", map.textureValue);
+            SetKeyword("_OVERLAP_OCCLUSION_MAP", map.textureValue);
     }
 
     void FinalNormals() {

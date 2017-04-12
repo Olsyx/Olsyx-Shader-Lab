@@ -125,13 +125,24 @@ Interpolators OlsyxVertexShader(VertexData v) {
 // -- Properties
 float  GetSmoothness(Interpolators intp) {
 	float smoothness = 1;
+#if defined (_SMOOTHNESS_ALBEDO)
+	smoothness = tex2D(_MainTex, intp.uv.xy).a;
+#elif defined (_SMOOTHNESS_METALLIC) && defined (_METALLIC_MAP)
+	smoothness = tex2D(_MetallicMap, intp.uv.xy).a;
+#endif
+
+	return smoothness * _Smoothness;
+}
+
+float3 GetSmoothnessMap(Interpolators intp) {
+	float smoothness = (1,1,1);
 	#if defined (_SMOOTHNESS_ALBEDO)
 		smoothness = tex2D(_MainTex, intp.uv.xy).a;
 	#elif defined (_SMOOTHNESS_METALLIC) && defined (_METALLIC_MAP)
 		smoothness = tex2D(_MetallicMap, intp.uv.xy).a;
 	#endif
 
-	return smoothness * _Smoothness;
+	return smoothness;
 }
 
 float GetMetallic(Interpolators intp) {
@@ -139,6 +150,14 @@ float GetMetallic(Interpolators intp) {
 		return tex2D(_MetallicMap, intp.uv.xy).r;
 	#else
 		return _Metallic;
+	#endif
+}
+
+float GetMetallicMap(Interpolators intp) {
+	#if defined(_METALLIC_MAP)
+		return tex2D(_MetallicMap, intp.uv.xy).r;
+	#else
+		return (_Metallic, _Metallic, _Metallic);
 	#endif
 }
 
@@ -390,32 +409,52 @@ FragmentOutput OlsyxFragmentShader(Interpolators intp) : SV_TARGET {
 
 // -- For Custom Extensions
 
-float GetCustomSmoothness(Interpolators intp, float smoothnessValue, sampler2D albedoTex, sampler2D metallicMap) {
+float GetCustomSmoothness(Interpolators intp, float smoothnessValue, sampler2D albedoTex, sampler2D metallicMap, bool useSmoothnessAlbedo, bool useMetallicAlbedo, bool useMetallicMap) {
 	float texSmoothness = 1;
 
-	#if defined (_SMOOTHNESS_ALBEDO)
+	if (useSmoothnessAlbedo) {
 		texSmoothness = tex2D(albedoTex, intp.uv.xy).a;
-	#elif defined (_SMOOTHNESS_METALLIC) && defined (_METALLIC_MAP)
+	} else if (useMetallicAlbedo && useMetallicMap) {
 		texSmoothness = tex2D(metallicMap, intp.uv.xy).a;
-	#endif
+	}
 
 	return texSmoothness * smoothnessValue;
 }
 
-float GetCustomMetallic(Interpolators intp, float metallicValue, sampler2D metallicMap) {
-	#if defined(_METALLIC_MAP)
-		return tex2D(metallicMap, intp.uv.xy).r;
-	#else
-		return metallicValue;
-	#endif
+float3 GetCustomSmoothnessMap(Interpolators intp, sampler2D albedoTex, sampler2D metallicMap, bool useSmoothnessAlbedo, bool useMetallicAlbedo, bool useMetallicMap) {
+	float3 texSmoothness = (1,1,1);
+
+	if (useSmoothnessAlbedo) {
+		texSmoothness = tex2D(albedoTex, intp.uv.xy);
+	} else if (useMetallicAlbedo && useMetallicMap) {
+		texSmoothness = tex2D(metallicMap, intp.uv.xy);
+	}
+
+	return texSmoothness;
 }
 
-float3 GetCustomOcclusion(Interpolators intp, float occlusionStrength, sampler2D occlusionMap) {
-	#if defined (_OCCLUSION_MAP)
+float GetCustomMetallic(Interpolators intp, float metallicValue, sampler2D metallicMap, bool useMetallicMap) {
+	if (useMetallicMap) {
+		return tex2D(metallicMap, intp.uv.xy).r;
+	} else {
+		return metallicValue;
+	}
+}
+
+float3 GetCustomMetallicMap(Interpolators intp, float metallicValue, sampler2D metallicMap, bool useMetallicMap) {
+	if (useMetallicMap) {
+		return tex2D(metallicMap, intp.uv.xy);
+	} else {
+		return (metallicValue, metallicValue, metallicValue);
+	}
+}
+
+float3 GetCustomOcclusion(Interpolators intp, float occlusionStrength, sampler2D occlusionMap, bool useOcclusion) {
+	if (useOcclusion) {
 		return lerp(1, tex2D(occlusionMap, intp.uv.xy).g, occlusionStrength);
-	#else
+	} else {
 		return 1;
-	#endif
+	}
 }
 
 void CalculateFragmentNormals_AddCustomNormals(inout Interpolators intp, float3 customNormals) {
@@ -433,15 +472,11 @@ void CalculateFragmentNormals_AddCustomNormals(inout Interpolators intp, float3 
 	);
 }
 
-
-FragmentOutput OlsyxFragmentWithCustomAttributes( 
+FragmentOutput OlsyxFragmentWithCustomAttributes ( 
 		Interpolators intp, 
 		float3 customColor, float3 customEmission, float3 customNormals, 
 		float customSmoothness, float customMetallic, float3 customOcclusionMap 
-	) 
-
-	{
-	
+	) {	
 	float alpha = GetAlpha(intp);
 	#if defined (_RENDERING_CUTOUT)
 		clip(alpha - _AlphaCutoff);
