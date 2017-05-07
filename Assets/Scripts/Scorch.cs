@@ -27,7 +27,7 @@ public class Scorch : MonoBehaviour {
             if (currentScorch > 1)
                 currentScorch = 1;
 
-            mat.SetFloat("_OverlapValue", currentScorch);
+            mat.SetFloat("_TransitionValue", currentScorch);
         }
     }
 }
