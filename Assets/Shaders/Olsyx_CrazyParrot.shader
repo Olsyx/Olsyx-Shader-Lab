@@ -1,8 +1,7 @@
-﻿// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
-
-Shader "Olsyx/Crazy Parrot" {
+﻿
+Shader "Olsyx/Variations/Crazy Parrot" {
 	Properties {
-		// Olsyx Standard Lighting's needed properties		
+
 		_Tint("Tint", Color) = (1, 1, 1, 1)
 		_MainTex("Albedo", 2D) = "white" {}
 
@@ -130,7 +129,7 @@ Shader "Olsyx/Crazy Parrot" {
 			#pragma vertex OlsyxVertexShader
 			#pragma fragment CrazyParrotFragmentShader
 
-			#include "OlsyxLighting.cginc"
+			#include "OlsyxLighting.cginc" 
 
 			// Data  ------------------------------------------------------------------------------------------------------------------
 			float4 _FinalColor;

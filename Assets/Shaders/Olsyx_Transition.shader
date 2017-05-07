@@ -1,6 +1,6 @@
-﻿Shader "Olsyx/Transition" {
+﻿Shader "Olsyx/Variations/Standard Transition" {
 	Properties{
-		// Olsyx Standard Lighting's needed properties		
+
 		_Tint("Tint", Color) = (1, 1, 1, 1)
 		_MainTex("Albedo", 2D) = "white" {}
 
@@ -17,7 +17,7 @@
 		[NoScaleOffset] _DetailNormalMap ("Detail Normals", 2D) = "bump" {}
 		[NoScaleOffset] _DetailMask("Detail Mask", 2D) = "white" {}
 		_DetailBumpScale ("Detail Bump Scale", Float) = 1
-
+ 
 		[NoScaleOffset] _EmissionMap("Emision", 2D) = "black" {}
 		_Emission ("Emission", Color) = (0, 0, 0)
 
@@ -183,7 +183,7 @@
 			Tags {
 				"LightMode" = "Deferred"
 			}
-	
+	 
 			CGPROGRAM
 
 			#pragma target 3.0

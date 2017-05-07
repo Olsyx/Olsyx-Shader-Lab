@@ -79,11 +79,15 @@
     <Compile Include="Assets\Scripts\TangentSpaceVisualizer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Shaders\OlsyxGlitch.cginc" />
     <None Include="Assets\Shaders\OlsyxLighting.cginc" />
     <None Include="Assets\Shaders\OlsyxShadows.cginc" />
+    <None Include="Assets\Shaders\OlsyxToon.cginc" />
     <None Include="Assets\Shaders\OlsyxTransition.cginc" />
     <None Include="Assets\Shaders\Olsyx_CrazyParrot.shader" />
+    <None Include="Assets\Shaders\Olsyx_Glitch.shader" />
     <None Include="Assets\Shaders\Olsyx_Standard.shader" />
+    <None Include="Assets\Shaders\Olsyx_ToonShader.shader" />
     <None Include="Assets\Shaders\Olsyx_Transition.shader" />
     <None Include="Assets\Shaders\SingleLights\Olsyx_AmbientLight.shader" />
     <None Include="Assets\Shaders\SingleLights\Olsyx_DiffuseLight.shader" />

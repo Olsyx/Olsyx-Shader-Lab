@@ -155,5 +155,5 @@ ENDCG
 		}
 	}
 
-			CustomEditor "OlsyxShaderGUI"
+			CustomEditor "OlsyxStandardShaderGUI"
 }

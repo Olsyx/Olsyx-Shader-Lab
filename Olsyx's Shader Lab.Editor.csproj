@@ -123,16 +123,22 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Editor\OlsyxCrazyParrotGUI.cs" />
-    <Compile Include="Assets\Scripts\Editor\OlsyxShaderGUI.cs" />
-    <Compile Include="Assets\Scripts\Editor\OlsyxTransitionGUI.cs" />
+    <Compile Include="Assets\Shaders\Editor\OlsyxCrazyParrotGUI.cs" />
+    <Compile Include="Assets\Shaders\Editor\OlsyxShaderGUI.cs" />
+    <Compile Include="Assets\Shaders\Editor\OlsyxStandardShaderGUI.cs" />
+    <Compile Include="Assets\Shaders\Editor\OlsyxToonShaderGUI.cs" />
+    <Compile Include="Assets\Shaders\Editor\OlsyxTransitionGUI.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Shaders\OlsyxGlitch.cginc" />
     <None Include="Assets\Shaders\OlsyxLighting.cginc" />
     <None Include="Assets\Shaders\OlsyxShadows.cginc" />
+    <None Include="Assets\Shaders\OlsyxToon.cginc" />
     <None Include="Assets\Shaders\OlsyxTransition.cginc" />
     <None Include="Assets\Shaders\Olsyx_CrazyParrot.shader" />
+    <None Include="Assets\Shaders\Olsyx_Glitch.shader" />
     <None Include="Assets\Shaders\Olsyx_Standard.shader" />
+    <None Include="Assets\Shaders\Olsyx_ToonShader.shader" />
     <None Include="Assets\Shaders\Olsyx_Transition.shader" />
     <None Include="Assets\Shaders\SingleLights\Olsyx_AmbientLight.shader" />
     <None Include="Assets\Shaders\SingleLights\Olsyx_DiffuseLight.shader" />

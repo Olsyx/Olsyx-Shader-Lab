@@ -1,6 +1,6 @@
 
-#if !defined(MY_LIGHTING_INCLUDED)
-#define MY_LIGHTING_INCLUDED
+#if !defined(OLSYX_LIGHTING_INCLUDED)
+#define OLSYX_LIGHTING_INCLUDED
 
 #include "UnityCG.cginc"
 #include "UnityPBSLighting.cginc"
@@ -41,7 +41,7 @@ struct VertexData {
 
 struct Interpolators {
 	float4 pos : SV_POSITION;	// Screen Position
-	float4 uv : TEXCOORD0;	// Main UV in XY, Detal UV in WZ
+	float4 uv : TEXCOORD0;	// Main UV in XY, Detail UV in WZ
 	float3 normal : TEXCOORD1;
 
 	float4 tangent : TEXCOORD2;
@@ -52,11 +52,15 @@ struct Interpolators {
 	float3 worldPosition : TEXCOORD4;
 
 	SHADOW_COORDS(5)
-
+		
 	#if defined(VERTEXLIGHT_ON)
 		float3 vertexLightColor : TEXCOORD6;
 	#endif
 
+
+	#if defined(VERTEXCOLOR_ON)
+		float4 color : COLOR;
+	#endif
 };
 
 struct FragmentOutput {
@@ -86,7 +90,7 @@ void ComputeVertexLightColor(inout Interpolators intp) {
 			unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
 			unity_LightColor[0].rgb, unity_LightColor[1].rgb,
 			unity_LightColor[2].rgb, unity_LightColor[3].rgb,
-			unity_4LightAtten0, intp.worldPos, intp.normal
+			unity_4LightAtten0, intp.worldPosition, intp.normal
 		);
 	#endif
 }
