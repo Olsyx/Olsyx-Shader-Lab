@@ -279,6 +279,23 @@ float StepLight(float light, float attenuation, float steppingFactor) {
 	return floor((light * attenuation) * steppingFactor) / steppingFactor;
 }
 
+float3 SpecularContribution(float3 normal, float3 specularColor, float3 lightDirection, float attenuation, float3 viewDirection, float specularPower, float specularQuantity, float steps) { // _SpecularValue, 1
+	float specularAmount = SpecularLight(normal, lightDirection, viewDirection, specularPower, specularQuantity);
+	float specular = StepLight(specularAmount, attenuation, steps);
+
+	float3 specularContribution = specularColor * specular;
+	return specularContribution;
+}
+
+
+float3 DiffuseContribution(float3 normal, float3 diffuseColor, float3 lightDirection, float attenuation, float steps) {
+	float diffuseAmount = DiffuseLight(normal, lightDirection);
+	float diffuse = StepLight(diffuseAmount, attenuation, steps);
+
+	float3 diffuseContribution = diffuseColor * diffuse;
+	return diffuseContribution;
+}
+
 float3 LightCalculations(Interpolators intp, float3 albedo, out float oneMinusReflectivity) {
 
 	float3 lightDirection = GetLightDirection(intp);
@@ -288,31 +305,37 @@ float3 LightCalculations(Interpolators intp, float3 albedo, out float oneMinusRe
 	
 	float3 viewDirection = normalize(_WorldSpaceCameraPos.xyz - intp.worldPosition.xyz);
 
-	float diffuseAmount = DiffuseLight(intp.normal, lightDirection);
-	float specularAmount = SpecularLight(intp.normal, lightDirection, viewDirection, _SpecularValue, 1);
+	// Ambient Calculations
+	float3 ambient = albedo * ShadeSH9(half4(intp.normal, 1.0));
 
-	float specular = StepLight(specularAmount, attenuation, _SpecularSteps);
-	float diffuse = StepLight(diffuseAmount, attenuation, _DiffuseSteps);
-	float unlit = clamp((1.0 - diffuse) - diffuse, 0.0, 1.0);
-	
-	float3 ramp = (0.3,0.3,0.3);
+	// Specular Calculations
+	float3 specularColor = (1, 1, 1);
+	float3 specularContribution = SpecularContribution (
+		intp.normal, specularColor, lightDirection, attenuation, 
+		viewDirection, _SpecularValue, 1, _SpecularSteps
+	);
+
+	float3 color;
 	#if defined(_USE_SHADING_RAMP)
+		// Ramp doesn't need diffuse
 		half value = nDotL * 0.5 + 0.5;
-		ramp = tex2D(_ShadingRamp, float2(value, 0.5)).rgb;
+
+		value = StepLight(value, 1, _DiffuseSteps);
+		float3 ramp = tex2D(_ShadingRamp, float2(value, 0.5)).rgb;
+
+		color = (ramp + specularContribution) * albedo * _LightColor0.rgb + ambient;
+
+	#else
+		// Diffuse Calculations
+		float3 diffuseColor = (1, 1, 1) * nDotL;
+		float3 diffuseContribution = DiffuseContribution(intp.normal, diffuseColor, lightDirection, attenuation, _DiffuseSteps);
+
+		float3 lightCombination = diffuseContribution + specularContribution;
+
+		color = lightCombination * albedo  * _LightColor0.rgb + ambient;
 	#endif
 
-	float3 diffuseColor = (1, 1, 1) * nDotL;
-	float3 specularColor = (1, 1, 1);
-
-	float3 ambientLight = diffuseColor * UNITY_LIGHTMODEL_AMBIENT.rgb;
-	float3 diffuseContribution = diffuseColor * diffuse;
-	float3 specularContribution = specularColor * specular;
-
-	float3 lightCombination = diffuseContribution + specularContribution;
-
-	float3 color = albedo * ramp + ambientLight + lightCombination * _LightColor0.rgb;
-
-	return color;	
+	return color;
 }
 
 

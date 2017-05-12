@@ -13,7 +13,7 @@
 						
 		_ShadingRamp("Shading Ramp", 2D) = "gray" {}
 			
-		_SpecularValue("Specular Value", Range(0, 8)) = 0.1	// Shininess
+		_SpecularValue("Specular Value", Range(0, 15)) = 0.1	// Shininess
 		_SpecularSteps("Specular Steps", Range(1, 100)) = 1
 		_DiffuseSteps("Specular Steps", Range(1, 100)) = 1
 
