@@ -84,31 +84,22 @@ struct FragmentOutput {
 Interpolators OlsyxOutlineVertex(VertexData v)
 {
 	Interpolators intp;
-
-	intp.pos = UnityObjectToClipPos(v.vertex);
-	//intp.pos = mul(UNITY_MATRIX_MVP, v.vertex);
+	#if !defined (_RENDERING_CUTOUT) && !defined (_RENDERING_FADE) 
+		intp.pos =  UnityObjectToClipPos(v.vertex + v.normal * _OutlineThickness);
+	#else
+		intp.pos = UnityObjectToClipPos(v.vertex);
+	#endif
 
 	intp.worldPosition = mul(unity_ObjectToWorld, v.vertex);
 
 	intp.normal = UnityObjectToWorldNormal(v.normal);
-	intp.normal = normalize(mul(float4(v.normal, 0.0), unity_WorldToObject).xyz);
 
 	intp.tangent = float4(UnityObjectToWorldDir(v.tangent.xyz), v.tangent.w);
 
 	intp.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);
 	intp.uv.zw = TRANSFORM_TEX(v.uv, _DetailTex);
 	//intp.uvDetail = v.uv;
-
-	float widthVariation = 1;
-	#if defined(_USE_WIDTH_VARIATION) 
-		widthVariation = abs(sin(_Time * 15));
-	#endif
-
-	#if !defined (_RENDERING_CUTOUT) && !defined (_RENDERING_FADE) && !defined (_RENDERING_TRANSPARENT)
-		float2 offset = TransformViewToProjection(intp.normal.xy);
-		intp.pos.xy += offset * _OutlineThickness * widthVariation;
-	#endif
-
+	
 	TRANSFER_SHADOW(intp);
 
 	intp.color = _OutlineColor;
@@ -116,26 +107,29 @@ Interpolators OlsyxOutlineVertex(VertexData v)
 }
 
 float4 OlsyxOutlineFragment(Interpolators intp) : SV_TARGET{
-	float alpha;
-
+	
 	bool useSmoothnessAlbedo = false;
 	#if defined(_SMOOTHNESS_ALBEDO)
 		useSmoothnessAlbedo = true;
 	#endif
-	alpha = GetAlpha(intp.uv, _MainTex, _Tint, useSmoothnessAlbedo);
-	
 
+	float alpha = GetAlpha(intp.uv, _MainTex, _Tint, useSmoothnessAlbedo);
+	
 	#if defined (_RENDERING_CUTOUT)
 		clip(alpha - _AlphaCutoff);
 	#endif
 
+	float3 viewDirection = normalize(_WorldSpaceCameraPos.xyz - intp.worldPosition.xyz);
+
 	#if defined(_RENDERING_TRANSPARENT)
-		intp.color *= alpha;
+		//intp.color *= alpha;
 		alpha = 1 - 1 + alpha * 1;
 	#endif
 
 	#if defined(_RENDERING_FADE) || defined(_RENDERING_TRANSPARENT)
-		intp.color.a = alpha;
+		if (dot(intp.normal, viewDirection) < -0.3) {
+			intp.color.a = alpha;
+		}
 	#endif
 
 	return intp.color;
