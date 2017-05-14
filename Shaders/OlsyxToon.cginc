@@ -5,12 +5,15 @@
 #include "UnityCG.cginc"
 #include "UnityPBSLighting.cginc"
 #include "AutoLight.cginc"
+#include "OlsyxToolBag.cginc"
 
 #ifdef GL_ES
 precision mediump float;
 #endif
 
-// Data ------------------------------------------------------------------------------------------------------------------
+
+// -- DATA ------------------------------------------------------------------------------------------------------------------
+
 float _OutlineThickness;
 float4 _OutlineColor; 
 
@@ -33,6 +36,8 @@ sampler2D _EmissionMap;
 float3 _Emission;
 
 float _AlphaCutoff;
+
+
 
 struct VertexData {
 	float4 vertex : POSITION;
@@ -73,101 +78,8 @@ struct FragmentOutput {
 	#endif
 };
 
-// PROPERTIES --------------------------------------------------------------------------------------------------------------
 
-float GetAlpha(Interpolators intp) {
-	float alpha = _Tint.a;
-	alpha *= tex2D(_MainTex, intp.uv.xy).a;
-	return alpha;
-}
-
-float3 GetAlbedo(Interpolators intp) {
-	float3 albedo = tex2D(_MainTex, intp.uv.xy).rgb * _Tint.rgb;
-	#if defined (_DETAIL_ALBEDO_MAP)
-		float3 details = tex2D(_DetailTex, intp.uv.zw) * unity_ColorSpaceDouble;
-		albedo = lerp(albedo, albedo * details, GetDetailMask(intp));
-	#endif
-		
-	return albedo;
-}
-
-float3 GetOcclusion(Interpolators intp) {
-	#if defined (_OCCLUSION_MAP)
-		return lerp(1, tex2D(_OcclusionMap, intp.uv.xy).g, _OcclusionStrength);
-	#else
-		return 1;
-	#endif
-}
-
-float3 GetEmission(Interpolators intp) {
-	#if defined (FORWARD_BASE_PASS) || defined(DEFERRED_PASS)
-		#if defined (_EMISSION_MAP)
-			return tex2D(_EmissionMap, intp.uv.xy) * _Emission;
-		#else
-			return _Emission;
-		#endif
-	#else
-		return 0;
-	#endif
-}
-
-float GetDetailMask(Interpolators intp) {
-	#if defined (_DETAIL_MASK)
-		return tex2D(_DetailMask, intp.uv.xy).a;
-	#else
-		return 1;
-	#endif
-}
-
-
-float3 CreateBinormal(float3 normal, float3 tangent, float binormalSign) {
-	return cross(normal, tangent.xyz) * (binormalSign * unity_WorldTransformParams.w);
-}
-
-float3 GetTangentSpaceNormal(Interpolators intp) {
-	/* --- Calculating Bumpiness ---
-	float2 deltaU = float2(_HeightMap_TexelSize.x * 0.5, 0);
-	float u1 = tex2D(_HeightMap, intp.uv - deltaU);
-	float u2 = tex2D(_HeightMap, intp.uv + deltaU);
-
-	float2 deltaV = float2(0, _HeightMap_TexelSize.y * 0.5);
-	float v1 = tex2D(_HeightMap, intp.uv - deltaV);
-	float v2 = tex2D(_HeightMap, intp.uv + deltaV);
-	intp.normal = float3(u1 - u2, 1, v1 - v2);
-	*/
-
-	// Normals' map, instead of bump map
-	float3 mainNormal = float3(0, 0, 1);
-#if defined(_NORMAL_MAP)
-	mainNormal = UnpackScaleNormal(tex2D(_NormalMap, intp.uv.xy), _BumpScale);
-#endif
-
-#if defined(_DETAIL_NORMAL_MAP)
-	float3 detailNormal = UnpackScaleNormal(tex2D(_DetailNormalMap, intp.uv.zw), _DetailBumpScale);
-	detailNormal = lerp(float3(0, 0, 1), detailNormal, GetDetailMask(intp));
-	mainNormal = BlendNormals(mainNormal, detailNormal);
-#endif
-
-	return mainNormal;
-}
-
-void CalculateFragmentNormals(inout Interpolators intp) {
-	float3 tangentSpaceNormal = GetTangentSpaceNormal(intp);
-
-	#if defined(BINORMAL_PER_FRAGMENT)
-		float3 binormal = CreateBinormal(intp.normal, intp.tangent.xyz, intp.tangent.w);
-	#else
-		float3 binormal = intp.binormal;
-	#endif
-
-	intp.normal = normalize(tangentSpaceNormal.x * intp.tangent +
-		tangentSpaceNormal.y * binormal +
-		tangentSpaceNormal.z * intp.normal
-	);
-}
-
-
-// OUTLINER ----------------------------------------------------------------------------------------------------------------
+// -- OUTLINER ----------------------------------------------------------------------------------------------------------------
 
 Interpolators OlsyxOutlineVertex(VertexData v)
 {
@@ -204,7 +116,15 @@ Interpolators OlsyxOutlineVertex(VertexData v)
 }
 
 float4 OlsyxOutlineFragment(Interpolators intp) : SV_TARGET{
-	float alpha = GetAlpha(intp);
+	float alpha;
+
+	bool useSmoothnessAlbedo = false;
+	#if defined(_SMOOTHNESS_ALBEDO)
+		useSmoothnessAlbedo = true;
+	#endif
+	alpha = GetAlpha(intp.uv, _MainTex, _Tint, useSmoothnessAlbedo);
+	
+
 	#if defined (_RENDERING_CUTOUT)
 		clip(alpha - _AlphaCutoff);
 	#endif
@@ -222,85 +142,20 @@ float4 OlsyxOutlineFragment(Interpolators intp) : SV_TARGET{
 }
 
 
-// TOON  ----------------------------------------------------------------------------------------------------------------
-Interpolators ComputeVertexLightColor(Interpolators intp) {
-	#if defined(VERTEXLIGHT_ON)
-		intp.vertexLightColor = Shade4PointLights(
-			unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
-			unity_LightColor[0].rgb, unity_LightColor[1].rgb,
-			unity_LightColor[2].rgb, unity_LightColor[3].rgb,
-			unity_4LightAtten0, intp.worldPosition, intp.normal
-		);
-	#endif
-	return intp;
-}
+// -- TOON SHADING ----------------------------------------------------------------------------------------------------------------
 
-float3 GetLightDirection(Interpolators intp) {	
-	float3 lightDirection = float3(0, 1, 0);	// Deferred pass
-	#if !defined(DEFERRED_PASS)
-		#if defined(POINT) || defined(POINT_COOKIE) || defined(SPOT)
-			lightDirection.xyz = normalize(_WorldSpaceLightPos0.xyz - intp.worldPosition);
-		#else
-			lightDirection.xyz = _WorldSpaceLightPos0.xyz;
-		#endif
-	#endif
+float3 LightCalculations(Interpolators intp, float3 albedo, out float oneMinusReflectivity) {
 
-	return lightDirection;
-}
+	float3 lightDirection = GetLightDirection(intp.worldPosition);
+	float nDotL = DotClamped(intp.normal, lightDirection.xyz);	
 
-float GetAttenuation(Interpolators intp, float lightDirection) {
 	float attenuation;
 	#if defined(SHADOWS_SCREEN)
 		attenuation = SHADOW_ATTENUATION(intp);
 	#else
-		attenuation = 1 / (1 + dot(lightDirection, lightDirection));
+		attenuation = GetAttenuation(lightDirection);
 	#endif
-	return attenuation;
-}
 
-float DiffuseLight(float3 normal, float3 lightDirection) {	// Lambertian Reflection
-	float product = clamp(dot(normal, lightDirection), 0.0, 1.0);
-	return product;
-}
-
-float SpecularLight(float3 normal, float3 lightDirection, float3 viewDirection, float specularPower, float specularQuantity) {
-	float reflection = dot(reflect(-lightDirection, normal), viewDirection);
-	float specularReflection = pow(max(0.0, reflection), exp2(specularPower));
-	//return specularReflection * specularQuantity;
-
-	//float3 reflected = reflect(viewDirection, normal);
-	//float3 halfwayVector = normalize(lightDirection + reflected);
-	//float specularReflection = pow(dot(normal, halfwayVector), specularPower);
-	return specularReflection * specularQuantity;
-
-}
-
-float StepLight(float light, float attenuation, float steppingFactor) {
-	return floor((light * attenuation) * steppingFactor) / steppingFactor;
-}
-
-float3 SpecularContribution(float3 normal, float3 specularColor, float3 lightDirection, float attenuation, float3 viewDirection, float specularPower, float specularQuantity, float steps) { // _SpecularValue, 1
-	float specularAmount = SpecularLight(normal, lightDirection, viewDirection, specularPower, specularQuantity);
-	float specular = StepLight(specularAmount, attenuation, steps);
-
-	float3 specularContribution = specularColor * specular;
-	return specularContribution;
-}
-
-
-float3 DiffuseContribution(float3 normal, float3 diffuseColor, float3 lightDirection, float attenuation, float steps) {
-	float diffuseAmount = DiffuseLight(normal, lightDirection);
-	float diffuse = StepLight(diffuseAmount, attenuation, steps);
-
-	float3 diffuseContribution = diffuseColor * diffuse;
-	return diffuseContribution;
-}
-
-float3 LightCalculations(Interpolators intp, float3 albedo, out float oneMinusReflectivity) {
-
-	float3 lightDirection = GetLightDirection(intp);
-	float nDotL = DotClamped(intp.normal, lightDirection.xyz);	
-	float attenuation = GetAttenuation(intp, lightDirection);
 	oneMinusReflectivity = 1 - attenuation;	
 	
 	float3 viewDirection = normalize(_WorldSpaceCameraPos.xyz - intp.worldPosition.xyz);
@@ -315,15 +170,17 @@ float3 LightCalculations(Interpolators intp, float3 albedo, out float oneMinusRe
 		viewDirection, _SpecularValue, 1, _SpecularSteps
 	);
 
+	float3 lightColor = _LightColor0.rgb  * attenuation; 
+
 	float3 color;
 	#if defined(_USE_SHADING_RAMP)
 		// Ramp doesn't need diffuse
 		half value = nDotL * 0.5 + 0.5;
 
-		value = StepLight(value, 1, _DiffuseSteps);
+		value = StepValue(value, 1, _DiffuseSteps);
 		float3 ramp = tex2D(_ShadingRamp, float2(value, 0.5)).rgb;
 
-		color = (ramp + specularContribution) * albedo * _LightColor0.rgb + ambient;
+		color = (ramp + specularContribution) * albedo * lightColor + ambient;
 
 	#else
 		// Diffuse Calculations
@@ -332,7 +189,7 @@ float3 LightCalculations(Interpolators intp, float3 albedo, out float oneMinusRe
 
 		float3 lightCombination = diffuseContribution + specularContribution;
 
-		color = lightCombination * albedo  * _LightColor0.rgb + ambient;
+		color = lightCombination * albedo  * lightColor + ambient;
 	#endif
 
 	return color;
@@ -363,20 +220,64 @@ Interpolators OlsyxToonVertex(VertexData v) {
 
 	TRANSFER_SHADOW(intp);
 
-
-	ComputeVertexLightColor(intp);
+	#if defined(VERTEXLIGHT_ON)
+		ComputeVertexLightColor(in out intp.vertexLightColor, intp.worldPosition, intp.normal);
+	#endif
 	return intp;
 }
 
 FragmentOutput OlsyxToonFragment(Interpolators intp) : SV_TARGET{
-	float alpha = GetAlpha(intp);
+
+	// Clipping Alpha
+	float alpha;
+
+	bool useSmoothnessAlbedo = false;
+	#if defined(_SMOOTHNESS_ALBEDO)
+		useSmoothnessAlbedo = true;
+	#endif
+	alpha = GetAlpha(intp.uv, _MainTex, _Tint, useSmoothnessAlbedo);
+	
 	#if defined (_RENDERING_CUTOUT)
 		clip(alpha - _AlphaCutoff);
-	#endif
+	#endif	
 		
-	CalculateFragmentNormals(intp);
 
-	float3 albedo = GetAlbedo(intp);
+	// Normal Maps
+	bool useNormalMap = false;
+	#if defined(_NORMAL_MAP)
+		useNormalMap = true;
+	#endif
+
+	bool useDetailNormalMap = false;
+	#if defined(_DETAIL_NORMAL_MAP)
+		useDetailNormalMap = true;
+	#endif
+
+	float detailMask = GetDetailMask(intp.uv, _DetailMask);
+	float3 tangentSpaceNormal = GetTangentSpaceNormal(
+		intp.uv, _NormalMap, _BumpScale, 
+		_DetailNormalMap, detailMask, _DetailBumpScale,
+		useNormalMap, useDetailNormalMap
+	);
+
+	// Binormals
+	float binormal;
+	#if defined(BINORMAL_PER_FRAGMENT)
+		binormal = CreateBinormal(intp.normal, intp.tangent.xyz, intp.tangent.w);
+	#else
+		binormal = intp.binormal;
+	#endif
+	
+	intp.normal = CalculateFragmentNormals(intp.normal, binormal, intp.tangent, tangentSpaceNormal);
+
+
+	// Albedo
+	bool useDetailTexture = false;
+	#if defined(_DETAIL_ALBEDO_MAP)
+		useDetailTexture = true;
+	#endif
+
+	float3 albedo = GetAlbedo(intp.uv, _MainTex, _DetailTex, _DetailMask, _Tint, useDetailTexture);
 	float oneMinusReflectivity;
 
 	albedo = LightCalculations(intp, albedo, oneMinusReflectivity);;
@@ -388,11 +289,23 @@ FragmentOutput OlsyxToonFragment(Interpolators intp) : SV_TARGET{
 
 	float4 color;
 	color.rgb = albedo;
-	color.rgb += GetEmission(intp);
+	
+
+	// Emission
+	#if defined(_EMISSION_MAP)
+		color.rgb += GetEmission(intp.uv, _EmissionMap, _Emission);
+	#else
+		color.rgb += _Emission;
+	#endif
+
+
+	// Alpha - Transparent & Cutouts
 	#if defined(_RENDERING_FADE) || defined(_RENDERING_TRANSPARENT)
 		color.a = alpha;
 	#endif
 
+
+	// Output
 	FragmentOutput output;
 	#if defined(DEFERRED_PASS)
 		#if !defined(UNITY_HDR_ON)
