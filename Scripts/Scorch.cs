@@ -10,15 +10,15 @@ public class Scorch : MonoBehaviour {
     float currentScorch;
     
     
-	void Start () {
+    void Start () {
         mat = GetComponent<Renderer>().material;
         currentScorch = 0;
-	}
+    }
 	
-	void Update () {
+    void Update () {
         if (Input.GetKey(KeyCode.Space))
             ScorchMe();
-	}
+    }
 
     void ScorchMe() {
         Debug.Log("Scorching!");
