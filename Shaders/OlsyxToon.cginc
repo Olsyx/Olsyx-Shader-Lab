@@ -143,19 +143,19 @@ float3 LightCalculations(Interpolators intp, float3 albedo, out float oneMinusRe
 	float3 lightDirection = GetLightDirection(intp.worldPosition);
 	float nDotL = DotClamped(intp.normal, lightDirection.xyz);	
 
-	float attenuation;
-	#if defined(SHADOWS_SCREEN)
-		attenuation = SHADOW_ATTENUATION(intp);
-	#else
-		attenuation = GetAttenuation(lightDirection);
-	#endif
+	//float attenuation;
+	//#if defined(SHADOWS_SCREEN)
+		//attenuation = SHADOW_ATTENUATION(intp);
+	//#else
+		UNITY_LIGHT_ATTENUATION(attenuation, intp, intp.worldPosition);// GetAttenuation(GetLightVector(intp.worldPosition));
+	//#endif
 
 	oneMinusReflectivity = 1 - attenuation;	
 	
 	float3 viewDirection = normalize(_WorldSpaceCameraPos.xyz - intp.worldPosition.xyz);
 
 	// Ambient Calculations
-	float3 ambient = albedo * ShadeSH9(half4(intp.normal, 1.0));
+	float3 ambient = albedo * AmbientLight(intp.normal);
 
 	// Specular Calculations
 	float3 specularColor = (1, 1, 1);

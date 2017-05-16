@@ -258,18 +258,30 @@ float3 GetLightDirection(float3 worldPosition) {
 	return lightDirection;
 }
 
-float GetAttenuation(float3 lightDirection) { 
+
+float3 GetLightVector(float3 worldPosition) {
+	float3 lightVector = _WorldSpaceLightPos0.xyz - worldPosition;
+	return lightVector;
+}
+
+
+
+float GetAttenuation(float3 lightVector) { 
 	// #if defined(SHADOWS_SCREEN)
 	//		attenuation = SHADOW_ATTENUATION(intp);
 	// #else ...
 
-	float attenuation = 1 / (1 + dot(lightDirection, lightDirection));
+	float attenuation = 1 / (1 + dot(lightVector, lightVector));
 	return attenuation;
 }
 
 float DiffuseLight(float3 normal, float3 lightDirection) {	// Lambertian Reflection
 	float product = clamp(dot(normal, lightDirection), 0.0, 1.0);
 	return product;
+}
+
+float AmbientLight(float3 normal) {
+	return ShadeSH9(half4(normal, 1.0));
 }
 
 float SpecularLight(float3 normal, float3 lightDirection, float3 viewDirection, float specularPower, float specularQuantity) {
@@ -304,7 +316,7 @@ float3 BlinnPhongLightModel(float3 worldPosition, float attenuation, float3 spec
 	oneMinusReflectivity = 1 - attenuation;	
 	
 	// Ambient Calculations
-	float3 ambient = albedo * ShadeSH9(half4(normal, 1.0));
+	float3 ambient = albedo * AmbientLight(normal);
 
 	// Specular Calculations
 	float3 specularContribution = SpecularContribution (
