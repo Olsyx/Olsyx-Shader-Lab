@@ -1,0 +1,183 @@
+fileFormatVersion: 2
+guid: 1241d8634ec64884bac911eb7d42eadf
+timeCreated: 1494542741
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: Alpaquita
+    100004: Armature
+    100006: Back
+    100008: Back_Leg_Bottom.L
+    100010: Back_Leg_Bottom.L_end
+    100012: Back_Leg_Bottom.R
+    100014: Back_Leg_Bottom.R_end
+    100016: Back_Leg_Control.L
+    100018: Back_Leg_Control.R
+    100020: Back_Leg_IK.L
+    100022: Back_Leg_IK.L_end
+    100024: Back_Leg_IK.R
+    100026: Back_Leg_IK.R_end
+    100028: Back_Leg_Pole.L
+    100030: Back_Leg_Pole.L_end
+    100032: Back_Leg_Pole.R
+    100034: Back_Leg_Pole.R_end
+    100036: Back_Leg_Top.L
+    100038: Back_Leg_Top.R
+    100040: Carpet
+    100042: Ear.L
+    100044: Ear.L_end
+    100046: Ear.R
+    100048: Ear.R_end
+    100050: Front_Leg_Bottom.L
+    100052: Front_Leg_Bottom.L_end
+    100054: Front_Leg_Bottom.R
+    100056: Front_Leg_Bottom.R_end
+    100058: Front_Leg_Control.L
+    100060: Front_Leg_Control.R
+    100062: Front_Leg_IK.L
+    100064: Front_Leg_IK.L_end
+    100066: Front_Leg_Pole.L
+    100068: Front_Leg_Pole.L_end
+    100070: Front_Leg_Pole.R
+    100072: Front_Leg_Pole.R_end
+    100074: Front_Leg_Top.L
+    100076: Front_Leg_Top.L.001
+    100078: Front_Leg_Top.L.001_end
+    100080: Front_Leg_Top.R
+    100082: Glasses
+    100084: Hair
+    100086: Head
+    100088: Neck
+    100090: Snout
+    100092: Snout_end
+    100094: Tail
+    100096: Tail_end
+    400000: Alpaquita
+    400002: //RootNode
+    400004: Armature
+    400006: Back
+    400008: Back_Leg_Bottom.L
+    400010: Back_Leg_Bottom.L_end
+    400012: Back_Leg_Bottom.R
+    400014: Back_Leg_Bottom.R_end
+    400016: Back_Leg_Control.L
+    400018: Back_Leg_Control.R
+    400020: Back_Leg_IK.L
+    400022: Back_Leg_IK.L_end
+    400024: Back_Leg_IK.R
+    400026: Back_Leg_IK.R_end
+    400028: Back_Leg_Pole.L
+    400030: Back_Leg_Pole.L_end
+    400032: Back_Leg_Pole.R
+    400034: Back_Leg_Pole.R_end
+    400036: Back_Leg_Top.L
+    400038: Back_Leg_Top.R
+    400040: Carpet
+    400042: Ear.L
+    400044: Ear.L_end
+    400046: Ear.R
+    400048: Ear.R_end
+    400050: Front_Leg_Bottom.L
+    400052: Front_Leg_Bottom.L_end
+    400054: Front_Leg_Bottom.R
+    400056: Front_Leg_Bottom.R_end
+    400058: Front_Leg_Control.L
+    400060: Front_Leg_Control.R
+    400062: Front_Leg_IK.L
+    400064: Front_Leg_IK.L_end
+    400066: Front_Leg_Pole.L
+    400068: Front_Leg_Pole.L_end
+    400070: Front_Leg_Pole.R
+    400072: Front_Leg_Pole.R_end
+    400074: Front_Leg_Top.L
+    400076: Front_Leg_Top.L.001
+    400078: Front_Leg_Top.L.001_end
+    400080: Front_Leg_Top.R
+    400082: Glasses
+    400084: Hair
+    400086: Head
+    400088: Neck
+    400090: Snout
+    400092: Snout_end
+    400094: Tail
+    400096: Tail_end
+    4300000: Hair
+    4300002: Glasses
+    4300004: Carpet
+    4300006: Alpaquita
+    7400000: Armature|ArmatureAction
+    9500000: //RootNode
+    13700000: Alpaquita
+    13700002: Carpet
+    13700004: Glasses
+    13700006: Hair
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

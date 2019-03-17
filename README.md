@@ -22,6 +22,8 @@ It takes an extra color to which the object will lerp over time. This variation 
 is not provided for visualization.
 Uses Standard as a base. Has its own GUI Script. 
 
+![CrazyParrot](http://cultofthepartyparrot.com/parrots/hd/parrot.gif)
+
 ### Transition Shader
 ![TransitionShader](/Screenshots/TransitionShaders.PNG)
 
