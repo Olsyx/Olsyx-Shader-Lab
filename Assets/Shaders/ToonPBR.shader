@@ -67,8 +67,10 @@
 			}
 			
 			float3 GetDiffuseLight(SurfaceOutput s, fixed3 lightDir, fixed3 viewDir, fixed attenuation) {
-				float4 diffuseTerm = saturate(dot(s.Normal, lightDir)) * attenuation;
-				return  GetShadeColor(diffuseTerm) * _LightColor0;
+				float4 diffuseTerm = saturate(dot(s.Normal, lightDir));
+				float shadow = smoothstep(0, fwidth(attenuation), attenuation * 2);
+				float3 diffuse = GetShadeColor(diffuseTerm) * shadow;
+				return diffuse * _LightColor0;
 			}
 
 			float4 GetSpecularLight(SurfaceOutput s, fixed3 lightDir, fixed3 viewDir, fixed attenuation) {
@@ -84,7 +86,7 @@
 			float4 LightingToonRamp(SurfaceOutput s, fixed3 lightDir, fixed3 viewDir, fixed attenuation) {
 				float3 diffuse = GetDiffuseLight(s, lightDir, viewDir, attenuation);
 				float4 specular = GetSpecularLight(s, lightDir, viewDir, attenuation);
-				float3 light = UNITY_LIGHTMODEL_AMBIENT + diffuse;
+				float3 light =  diffuse;
 
 				float4 color;
 				color.rgb = s.Albedo * light + specular;
